@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link } from "react-router-dom";
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -9,32 +9,31 @@ function Navbar() {
 
   return (
     <>
-     <nav className="relative flex justify-between items-center 
+      <nav
+        className="relative flex justify-between items-center 
                     px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40
                     py-4 bg-gradient-to-r from-[#6a82fb] to-[#744ca5] 
-                    text-white shadow-md min-h-[10vh]">
-
-      {/* Left Side */}
-      <div className="flex items-center gap-2">
-        <h1 className="text-4xl font-bold">NavGurukul</h1>
-        <p className="hidden sm:block text-lg opacity-90">
-          Progress Tracker
-        </p>
-      </div>
-
-      {/* Hamburger Button */}
-      <div
-        className="flex md:hidden flex-col gap-[5px] cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+                    text-white shadow-md min-h-[10vh]"
       >
-        <span className="w-6 h-[3px] bg-white rounded"></span>
-        <span className="w-6 h-[3px] bg-white rounded"></span>
-        <span className="w-6 h-[3px] bg-white rounded"></span>
-      </div>
+        {/* Left Side */}
+        <div className="flex items-center gap-2">
+          <h1 className="text-4xl font-bold">NavGurukul</h1>
+          <p className="hidden sm:block text-lg opacity-90">Progress Tracker</p>
+        </div>
 
-      {/* Nav Links */}
-      <ul
-        className={`
+        {/* Hamburger Button */}
+        <div
+          className="flex md:hidden flex-col gap-[5px] cursor-pointer"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span className="w-6 h-[3px] bg-white rounded"></span>
+          <span className="w-6 h-[3px] bg-white rounded"></span>
+          <span className="w-6 h-[3px] bg-white rounded"></span>
+        </div>
+
+        {/* Nav Links */}
+        <ul
+          className={`
         ${isOpen ? "flex" : "hidden"}
         md:flex flex-col md:flex-row
         absolute md:static
@@ -45,60 +44,58 @@ function Navbar() {
         w-[150px] md:w-auto
         gap-4 md:gap-6
         `}
-      >
-        <li>
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="text-xl hover:text-[#ffe4ff] transition"
-          >
-            Home
-          </Link>
-        </li>
+        >
+          <li>
+            <Link
+              to="/"
+              onClick={() => setIsOpen(false)}
+              className="text-xl hover:text-[#ffe4ff] transition"
+            >
+              Home
+            </Link>
+          </li>
 
-        <li>
-          <Link
-            to="/addTask"
-            onClick={() => setIsOpen(false)}
-            className="text-xl hover:text-[#ffe4ff] transition"
-          >
-            Add Task
-          </Link>
-        </li>
+          <li>
+            <Link
+              to="/addTask"
+              onClick={() => setIsOpen(false)}
+              className="text-xl hover:text-[#ffe4ff] transition"
+            >
+              Add Task
+            </Link>
+          </li>
 
-        <li>
-          <Link
-            to="/progress"
-            onClick={() => setIsOpen(false)}
-            className="text-xl hover:text-[#ffe4ff] transition"
-          >
-            Progress
-          </Link>
-        </li>
+          <li>
+            <Link
+              to="/progress"
+              onClick={() => setIsOpen(false)}
+              className="text-xl hover:text-[#ffe4ff] transition"
+            >
+              Progress
+            </Link>
+          </li>
 
-        {/* Login Button */}
-        <li>
-          <Link
-            to="/login"
-            onClick={() => setIsOpen(false)}
-            className="text-sl font-bold bg-white text-purple-700 
+          {/* Login Button */}
+          <li>
+            <Link
+              to="/login"
+              onClick={() => setIsOpen(false)}
+              className="text-sl font-bold bg-white text-purple-700 
                        px-4 py-1 rounded-lg 
                        hover:bg-purple-100 hover:text-purple-800 transition"
-          >
-            Login
-          </Link>
-        </li>
-      </ul>
-    </nav>
+            >
+              Login
+            </Link>
+          </li>
+        </ul>
+      </nav>
 
-{/* <Routes>
+      {/* <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
       </Routes> */}
-
     </>
-   
   );
 }
 

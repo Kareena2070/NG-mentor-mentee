@@ -26,10 +26,8 @@ function Home() {
 
   return (
     <div className="min-h-[90vh] flex flex-col bg-[#f7f8fa] font-sans">
-
       {/* Header Section */}
       <div className="flex-1 flex flex-col justify-center items-center text-center px-5 py-8 bg-gradient-to-r from-[#6a82fb] to-[#744ca5] text-white">
-
         <h1 className="lg:text-6xl md:text-5xl sm:text-4xl text-2xl font-bold mb-4 break-words">
           Welcome to NavGurukul
         </h1>
@@ -56,7 +54,6 @@ function Home() {
 
       {/* Cards Section */}
       <div className="flex justify-center items-center flex-wrap gap-4 p-8  ">
-
         {explinList.map((explain, id) => (
           <div
             key={id}
