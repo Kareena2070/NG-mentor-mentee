@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
-import Home from "../pages/Home";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-
+import { Link } from "react-router-dom";
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
