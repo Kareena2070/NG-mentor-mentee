@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import mentorFormRoutes from './routes/mentorForms.js';
+import menteeFormRoutes from './routes/menteeForms.js';
+import progressRoutes from './routes/progress.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -22,6 +25,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/mentor-forms', mentorFormRoutes);
+app.use('/api/mentee-forms', menteeFormRoutes);
+app.use('/api/progress', progressRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
