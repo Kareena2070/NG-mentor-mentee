@@ -10,10 +10,11 @@ function Register() {
   const [role, setRole] = useState("mentee");
   const [menteeEmail, setMenteeEmail] = useState("");
   const [expertise, setExpertise] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const submitButton = (e) => {
+  const submitButton = async (e) => {
     e.preventDefault();
     let expertiseArray = [];
 
@@ -24,7 +25,7 @@ function Register() {
         .filter((item) => item !== "");
     }
 
-    const res = register(
+    const res = await register(
       name,
       email,
       password,
@@ -33,14 +34,18 @@ function Register() {
       role === "mentor" ? expertiseArray : []
     );
 
-    if (res) navigate("/login");
+    if (res.success) {
+      navigate("/");
+    } else {
+      setError(res.message);
+    }
   };
 
   return (
     <div className="h-[90vh] flex justify-center items-center bg-gradient-to-r from-[#f0f4ff] to-[#e6f0ff]">
-      
+
       <div className="bg-white p-10 w-[90%] max-w-[400px] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] text-center">
-        
+
         <h1 className="mb-2 text-gray-800 text-2xl font-semibold">
           Create Account
         </h1>
@@ -50,7 +55,7 @@ function Register() {
         </p>
 
         <form onSubmit={submitButton} className="flex flex-col gap-4">
-          
+
           {/* Full Name */}
           <div className="flex flex-col text-left">
             <label className="text-sm mb-1 text-gray-700">
@@ -143,6 +148,10 @@ function Register() {
               className="p-2 rounded-md border border-gray-300 transition duration-300 focus:border-[#4a90e2] focus:outline-none focus:shadow-[0_0_5px_rgba(74,144,226,0.4)]"
             />
           </div>
+
+          {error && (
+            <p className="text-red-500 text-sm mb-3">{error}</p>
+          )}
 
           {/* Button */}
           <button

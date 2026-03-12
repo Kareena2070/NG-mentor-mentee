@@ -32,12 +32,14 @@ export const AuthProvider = ({ children }) => {
         payload
       );
 
-      setUser(res.data);
-      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data));
-      return true;
+      setUser(res.data.user);
+      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data.user));
+      return { success: true };
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
-      return false;
+      return {
+        success: false,
+        message: err.response?.data?.message || "Registration failed",
+      }
     }
   };
 
@@ -48,12 +50,14 @@ export const AuthProvider = ({ children }) => {
         password,
       });
 
-      setUser(res.data);
-      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data));
-      return true;
+      setUser(res.data.user);
+      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data.user));
+      return { success: true };
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
-      return false;
+      return {
+        success: false,
+        message: err.response?.data?.message || "Login failed",
+      };
     }
   };
 

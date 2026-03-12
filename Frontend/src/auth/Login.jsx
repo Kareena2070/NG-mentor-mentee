@@ -6,20 +6,25 @@ function Login() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const submitButton = (e) => {
+  const submitButton = async (e) => {
     e.preventDefault();
-    const res = login(email, password);
-    if (res) navigate("/");
+    const res = await login(email, password);
+    if (res.success) {
+      navigate("/");
+    } else {
+      setError(res.message);
+    }
   };
 
   return (
     <div className="h-[90vh] flex justify-center items-center bg-gradient-to-r from-[#f0f4ff] to-[#e6f0ff]">
-      
+
       <div className="bg-white p-10 w-[90%] max-w-[380px] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] text-center">
-        
+
         <h1 className="mb-2 text-gray-800 text-2xl font-semibold">
           Welcome Back
         </h1>
@@ -28,8 +33,12 @@ function Login() {
           Login to continue your learning journey
         </p>
 
+        {error && (
+          <p className="text-red-500 text-sm mb-3">{error}</p>
+        )}
+
         <form onSubmit={submitButton} className="flex flex-col gap-4">
-          
+
           <div className="flex flex-col text-left">
             <label className="text-sm mb-1 text-gray-700">Email</label>
             <input

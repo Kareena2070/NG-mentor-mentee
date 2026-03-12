@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <>
@@ -31,15 +33,7 @@ function Navbar() {
         <ul
           className={`
         ${isOpen ? "flex" : "hidden"}
-        md:flex flex-col md:flex-row
-        absolute md:static
-        top-[60px] right-5 md:top-auto md:right-auto
-        bg-[#6a82fb] md:bg-transparent
-        p-4 md:p-0
-        rounded-lg md:rounded-none
-        w-[150px] md:w-auto
-        gap-4 md:gap-6
-        `}
+        md:flex flex-col md:flex-row absolute md:static top-[60px] right-5 md:top-auto md:right-auto bg-[#6a82fb] md:bg-transparent p-4 md:p-0 rounded-lg md:rounded-none w-[150px] md:w-auto gap-4 md:gap-6 `}
         >
           <li>
             <Link
@@ -72,25 +66,25 @@ function Navbar() {
           </li>
 
           {/* Login Button */}
-          <li>
-            <Link
-              to="/login"
-              onClick={() => setIsOpen(false)}
-              className="text-sl font-bold bg-white text-purple-700 
-                       px-4 py-1 rounded-lg 
-                       hover:bg-purple-100 hover:text-purple-800 transition"
-            >
-              Login
-            </Link>
-          </li>
+          {user ? (
+            <li className="text-lg font-semibold">
+              Hi, {user.name}
+            </li>
+          ) : (
+            <li>
+              <Link
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="text-sm font-bold bg-white text-purple-700 
+                 px-4 py-1 rounded-lg 
+                 hover:bg-purple-100 hover:text-purple-800 transition"
+              >
+                Login
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
-
-      {/* <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-      </Routes> */}
     </>
   );
 }
