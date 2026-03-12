@@ -11,7 +11,7 @@ function Navbar() {
         className="relative flex justify-between items-center 
                     px-4 sm:px-8 md:px-16 lg:px-24 xl:px-40
                     py-4 bg-gradient-to-r from-[#6a82fb] to-[#744ca5] 
-                    text-white shadow-md min-h-[10vh]"
+                    text-white shadow-md min-h-[5vh]"
       >
         {/* Left Side */}
         <div className="flex items-center gap-2">
@@ -47,11 +47,11 @@ function Navbar() {
 
           <li>
             <Link
-              to="/addTask"
+              to="/dashboard"
               onClick={() => setIsOpen(false)}
               className="text-xl hover:text-[#ffe4ff] transition"
             >
-              Add Task
+              Reflection
             </Link>
           </li>
 
