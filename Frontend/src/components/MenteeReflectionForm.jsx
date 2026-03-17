@@ -9,7 +9,7 @@ function MenteeReflectionForm() {
         topicCovered: "",
         learningsFromMentor: "",
         confidenceRating: 3,
-        appliedPracticed: "No",
+        appliedPracticed: "",
         practiceExample: "",
         difficultiesEncountered: "",
         needsBetterExplanation: "",
@@ -28,15 +28,17 @@ function MenteeReflectionForm() {
 
         const payload = {
             ...form,
-            mentee: user._id,
-            mentor: user.mentor
+            mentee: user.id,
+            // mentor: user.mentor
         };
+        console.log("Payload:", payload);
 
         try {
             await submitMenteeForm(payload);
             alert("Reflection submitted successfully");
         } catch (err) {
-            console.log(err);
+            console.log("Server error:", err.response?.data);
+            console.log(JSON.stringify(err.response?.data, null, 2));
         }
     };
 

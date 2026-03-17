@@ -1,13 +1,10 @@
-import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://localhost:5000/api"
-});
+import API from "./axios";
 
 export const submitMenteeForm = (data) => {
-  return API.post("/mentee-form", data);
+  return API.post("/mentee-forms", data);
 };
 
 export const submitMentorForm = (data) => {
-  return API.post("/mentor-form", data);
+  return API.post("/mentor-forms", data);
 };

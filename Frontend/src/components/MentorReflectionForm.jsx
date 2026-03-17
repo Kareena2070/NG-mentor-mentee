@@ -27,7 +27,7 @@ function MentorReflectionForm() {
 
     const payload = {
       ...form,
-      mentor: user._id,
+      mentor: user.id,
       mentee: user.mentee
     };
 
