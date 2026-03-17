@@ -1,20 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { submitMenteeForm } from "../api/forms";
+import { getMenteeMentors, submitMenteeForm } from "../api/forms";
 
 function MenteeReflectionForm() {
     const { user } = useAuth();
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [form, setForm] = useState({
         topicCovered: "",
         learningsFromMentor: "",
         confidenceRating: 3,
-        appliedPracticed: "",
+        appliedPracticed: "No",
         practiceExample: "",
         difficultiesEncountered: "",
         needsBetterExplanation: "",
         starsRating: 3
     });
+    const [mentors, setMentors] = useState([]);
+    const [mentorId, setMentorId] = useState("");
+
+    useEffect(() => {
+        const fetchMentors = async () => {
+            try {
+                const res = await getMenteeMentors();
+
+                const mentorList = res.data?.mentors || [];
+                
+                setMentors(mentorList);
+                if (mentorList.length > 0) {
+                    setMentorId(mentorList[0]._id);
+                }
+            } catch (error) {
+                console.log("Failed to fetch mentors:", error.response?.data || error.message);
+            }
+        };
+
+        fetchMentors();
+    }, []);
 
     const handleChange = (e) => {
         setForm({
@@ -28,22 +50,38 @@ function MenteeReflectionForm() {
 
         const payload = {
             ...form,
-            mentee: user.id,
-            // mentor: user.mentor
+            mentorId
         };
         console.log("Payload:", payload);
 
         try {
             await submitMenteeForm(payload);
-            alert("Reflection submitted successfully");
+
+            setSuccessMessage("Reflection submitted successfully");
+
+            setForm(initialFormState);
+
+            if (mentors.length > 0) {
+                setMentorId(mentors[0]._id);
+            }
+
+            // auto-hide after 3 sec
+            timeoutRef.current = setTimeout(() => {
+                setSuccessMessage("");
+            }, 3000);
+
         } catch (err) {
             console.log("Server error:", err.response?.data);
-            console.log(JSON.stringify(err.response?.data, null, 2));
         }
     };
 
     return (
         <div className="w-full max-w-3xl">
+            {successMessage && (
+                <div className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-center">
+                    {successMessage}
+                </div>
+            )}
 
             <form
                 onSubmit={submitHandler}
@@ -55,6 +93,31 @@ function MenteeReflectionForm() {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                    {/* Topic Covered */}
+                    <div className="flex flex-col gap-1 md:col-span-2">
+                        <label className="font-medium text-gray-700">
+                            Select Mentor
+                        </label>
+
+                        <select
+                            name="mentorId"
+                            value={mentorId}
+                            onChange={(e) => setMentorId(e.target.value)}
+                            className="w-full border rounded-lg px-3 py-2"
+                            required
+                        >
+                            {mentors.length === 0 ? (
+                                <option value="">No mentors available</option>
+                            ) : (
+                                mentors.map((mentor) => (
+                                    <option key={mentor._id} value={mentor._id}>
+                                        {mentor.name} ({mentor.email})
+                                    </option>
+                                ))
+                            )}
+                        </select>
+                    </div>
 
                     {/* Topic Covered */}
                     <div className="flex flex-col gap-1 md:col-span-2">
@@ -192,6 +255,7 @@ function MenteeReflectionForm() {
 
                 {/* Submit */}
                 <button
+                    disabled={mentors.length === 0}
                     className="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 transition"
                 >
                     Submit Reflection
