@@ -6,6 +6,30 @@ import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
+const normalizeMentorFormInput = (req, res, next) => {
+  const menteeCandidate = req.body.menteeId ?? req.body.mentee;
+  if (menteeCandidate && typeof menteeCandidate === 'object') {
+    req.body.menteeId = menteeCandidate._id ?? menteeCandidate.id ?? req.body.menteeId;
+  } else if (menteeCandidate) {
+    req.body.menteeId = menteeCandidate;
+  }
+
+  if (typeof req.body.progressComparison === 'string') {
+    const normalizedProgress = req.body.progressComparison.trim().toLowerCase();
+    if (normalizedProgress === 'improved') {
+      req.body.progressComparison = 'Improved';
+    }
+    if (normalizedProgress === 'same') {
+      req.body.progressComparison = 'Same';
+    }
+    if (normalizedProgress === 'needs attention' || normalizedProgress === 'needs_attention') {
+      req.body.progressComparison = 'Needs Attention';
+    }
+  }
+
+  next();
+};
+
 // Validation middleware for mentor form
 const mentorFormValidation = [
   body('menteeId')
@@ -69,7 +93,7 @@ const handleValidation = (req, res, next) => {
 // @route   POST /api/mentor-forms
 // @desc    Submit mentor form
 // @access  Private (Mentor only)
-router.post('/', authenticate, authorize('mentor'), mentorFormValidation, handleValidation, async (req, res) => {
+router.post('/', authenticate, authorize('mentor'), normalizeMentorFormInput, mentorFormValidation, handleValidation, async (req, res) => {
   try {
     const { 
       menteeId, 

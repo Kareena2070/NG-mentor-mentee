@@ -6,6 +6,27 @@ import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
+const normalizeMenteeFormInput = (req, res, next) => {
+  const mentorCandidate = req.body.mentorId ?? req.body.mentor;
+  if (mentorCandidate && typeof mentorCandidate === 'object') {
+    req.body.mentorId = mentorCandidate._id ?? mentorCandidate.id ?? req.body.mentorId;
+  } else if (mentorCandidate) {
+    req.body.mentorId = mentorCandidate;
+  }
+
+  if (typeof req.body.appliedPracticed === 'string') {
+    const normalizedApplied = req.body.appliedPracticed.trim().toLowerCase();
+    if (normalizedApplied === 'yes' || normalizedApplied === 'true') {
+      req.body.appliedPracticed = 'Yes';
+    }
+    if (normalizedApplied === 'no' || normalizedApplied === 'false') {
+      req.body.appliedPracticed = 'No';
+    }
+  }
+
+  next();
+};
+
 // Validation middleware for mentee form
 const menteeFormValidation = [
   body('mentorId')
@@ -76,7 +97,7 @@ const handleValidation = (req, res, next) => {
 // @route   POST /api/mentee-forms
 // @desc    Submit mentee form
 // @access  Private (Mentee only)
-router.post('/', authenticate, authorize('mentee'), menteeFormValidation, handleValidation, async (req, res) => {
+router.post('/', authenticate, authorize('mentee'), normalizeMenteeFormInput, menteeFormValidation, handleValidation, async (req, res) => {
   try {
     const {
       mentorId,
