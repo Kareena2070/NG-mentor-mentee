@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { submitMentorForm } from "../api/forms";
+import { getMentorMentees, submitMentorForm } from "../api/forms";
 
 function MentorReflectionForm() {
   const { user } = useAuth();
@@ -14,6 +14,25 @@ function MentorReflectionForm() {
     feedbackForMentee: "",
     starsRating: 3
   });
+  const [mentees, setMentees] = useState([]);
+  const [menteeId, setMenteeId] = useState("");
+
+  useEffect(() => {
+    const fetchMentees = async () => {
+      try {
+        const res = await getMentorMentees();
+        const menteeList = res.data?.mentees || [];
+        setMentees(menteeList);
+        if (menteeList.length > 0) {
+          setMenteeId(menteeList[0]._id);
+        }
+      } catch (error) {
+        console.log("Failed to fetch mentees:", error.response?.data || error.message);
+      }
+    };
+
+    fetchMentees();
+  }, []);
 
   const handleChange = (e) => {
     setForm({
@@ -27,8 +46,8 @@ function MentorReflectionForm() {
 
     const payload = {
       ...form,
-      mentor: user._id,
-      mentee: user.mentee
+      mentor: user.id,
+      menteeId
     };
 
     try {
@@ -52,6 +71,30 @@ function MentorReflectionForm() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+          <div className="flex flex-col gap-1 md:col-span-2">
+            <label className="font-medium text-gray-700">
+              Select Mentee
+            </label>
+
+            <select
+              name="menteeId"
+              value={menteeId}
+              onChange={(e) => setMenteeId(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2"
+              required
+            >
+              {mentees.length === 0 ? (
+                <option value="">No mentees available</option>
+              ) : (
+                mentees.map((mentee) => (
+                  <option key={mentee._id} value={mentee._id}>
+                    {mentee.name} ({mentee.email})
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
           {/* Topic Covered */}
           <div className="flex flex-col gap-1 md:col-span-2">
@@ -172,6 +215,7 @@ function MentorReflectionForm() {
 
         {/* Submit */}
         <button
+          disabled={mentees.length === 0}
           className="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 transition"
         >
           Submit Mentor Feedback

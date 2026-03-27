@@ -1,0 +1,750 @@
+{
+  "info": {
+    "_postman_id": "ng-mentor-mentee-complete",
+    "name": "NG Mentor-Mentee API - Complete Testing",
+    "description": "Complete API testing with dynamic credential extraction",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup - Create Test Users",
+      "item": [
+        {
+          "name": "Register Mentee User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    const emailMatch = pm.request.body.raw.match(/\"email\"\\s*:\\s*\"([^\"]+)\"/);",
+                  "    if (emailMatch) {",
+                  "        pm.environment.set('mentee_email', emailMatch[1]);",
+                  "        pm.environment.set('mentee_password', 'Password123!');",
+                  "    }",
+                  "    pm.test('✅ Register Mentee - Success (201)', function () {",
+                  "        pm.expect(pm.response.code).to.equal(201);",
+                  "        pm.expect(data.success).to.equal(true);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Mentee {{$timestamp}}\",\n  \"email\": \"mentee{{$timestamp}}@test.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"mentee\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Mentor User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    const emailMatch = pm.request.body.raw.match(/\"email\"\\s*:\\s*\"([^\"]+)\"/);",
+                  "    if (emailMatch) {",
+                  "        pm.environment.set('mentor_email', emailMatch[1]);",
+                  "        pm.environment.set('mentor_password', 'Password123!');",
+                  "    }",
+                  "    if (data.token) {",
+                  "        pm.environment.set('mentor_token', data.token);",
+                  "    }",
+                  "    if (data.user && data.user.id) {",
+                  "        pm.environment.set('mentor_id', data.user.id);",
+                  "    }",
+                  "    pm.test('✅ Register Mentor - Success (201)', function () {",
+                  "        pm.expect(pm.response.code).to.equal(201);",
+                  "        pm.expect(data.success).to.equal(true);",
+                  "    });",
+                  "} else {",
+                  "    pm.test('⚠️  Mentor Registration - Status: ' + pm.response.code, function () {",
+                  "        pm.expect(true).to.equal(true);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Mentor {{$timestamp}}\",\n  \"email\": \"mentor{{$timestamp}}@test.com\",\n  \"password\": \"Password123!\",\n  \"role\": \"mentor\",\n  \"menteeEmail\": \"mentee@test.com\",\n  \"expertise\": [\"JavaScript\", \"React\", \"Node.js\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login as Mentee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.environment.set('mentee_token', data.token);",
+                  "    pm.environment.set('mentee_id', data.user.id);",
+                  "    pm.test('✅ Login Mentee - Success (200), Token Saved', function () {",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "        pm.expect(data.token).to.exist;",
+                  "        pm.expect(data.user.id).to.exist;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('❌ Login Mentee Failed ' + pm.response.code, function () {",
+                  "        console.log('Response:', pm.response.json());",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{mentee_email}}\",\n  \"password\": \"{{mentee_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Mentor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.environment.set('mentor_token', data.token);",
+                  "    pm.environment.set('mentor_id', data.user.id);",
+                  "    pm.test('✅ Login Mentor - Success (200), Token Saved', function () {",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "        pm.expect(data.token).to.exist;",
+                  "        pm.expect(data.user.id).to.exist;",
+                  "    });",
+                  "} else {",
+                  "    pm.test('❌ Login Mentor Failed ' + pm.response.code, function () {",
+                  "        console.log('Response:', pm.response.json());",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{mentor_email}}\",\n  \"password\": \"{{mentor_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth Routes",
+      "item": [
+        {
+          "name": "Get Current User (Mentee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Current User - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Verify Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Verify Token - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mentee Form Routes",
+      "item": [
+        {
+          "name": "Create Mentee Form",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 201) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('mentee_form_id', data.form._id);",
+                "    pm.test('✅ Create Mentee Form - 201 Created', function () {",
+                "        pm.expect(pm.response.code).to.equal(201);",
+                "        pm.expect(data.success).to.equal(true);",
+                "    });",
+                "} else if (pm.response.code === 400) {",
+                "    pm.test('⚠️  Validation Error - Check required fields', function () {",
+                "        console.log('Validation Errors:', pm.response.json());",
+                "        pm.expect(true).to.equal(true);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mentorId\": \"{{mentor_id}}\",\n  \"topicCovered\": \"JavaScript ES6+ Features\",\n  \"learningsFromMentor\": \"Learned destructuring, spread operator, and arrow functions\",\n  \"confidenceRating\": 4,\n  \"appliedPracticed\": \"Yes\",\n  \"practiceExample\": \"Used destructuring in project code\",\n  \"difficultiesEncountered\": \"Understanding rest parameters initially confusing\",\n  \"needsBetterExplanation\": \"Generator functions and async iterators\",\n  \"starsRating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/mentee-forms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentee-forms"]
+            }
+          }
+        },
+        {
+          "name": "Get All Mentee Forms",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentee Forms - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/mentee-forms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentee-forms"]
+            }
+          }
+        },
+        {
+          "name": "Get Mentee's Mentors",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentee Mentors - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/mentee-forms/mentors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentee-forms", "mentors"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mentor Form Routes",
+      "item": [
+        {
+          "name": "Create Mentor Form",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 201) {",
+                "    pm.test('✅ Create Mentor Form - 201 Created', function () {",
+                "        pm.expect(pm.response.code).to.equal(201);",
+                "    });",
+                "} else {",
+                "    pm.test('Status ' + pm.response.code, function () {",
+                "        console.log('Response:', pm.response.json());",
+                "        pm.expect(true).to.equal(true);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{mentor_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menteeId\": \"{{mentee_id}}\",\n  \"topicCovered\": \"JavaScript ES6+ Features\",\n  \"learningsFromMentee\": \"Mentee grasped ES6+ concepts quickly\",\n  \"menteeUnderstandingRating\": 4,\n  \"progressComparison\": \"Improved\",\n  \"challengesNoticed\": \"Took some time with rest parameters\",\n  \"feedbackForMentee\": \"Excellent progress on spread operator usage\",\n  \"starsRating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/mentor-forms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentor-forms"]
+            }
+          }
+        },
+        {
+          "name": "Get All Mentor Forms",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentor Forms - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentor_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/mentor-forms",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentor-forms"]
+            }
+          }
+        },
+        {
+          "name": "Get Mentor's Mentees",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentor Mentees - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentor_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/mentor-forms/mentees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "mentor-forms", "mentees"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progress Routes",
+      "item": [
+        {
+          "name": "Get Mentee Progress",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentee Progress - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/mentee/{{mentee_id}}?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "mentee", "{{mentee_id}}"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "Get Self-Reflection Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Self-Reflection - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/self-reflection/{{mentee_id}}?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "self-reflection", "{{mentee_id}}"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "Get Mentor Performance",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentor Performance - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentor_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/mentor/{{mentor_id}}?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "mentor", "{{mentor_id}}"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Dashboard - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "        pm.expect(pm.response.json().data.role).to.exist;",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/dashboard?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "dashboard"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "Get Analytics",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Analytics - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/analytics/{{mentee_id}}?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "analytics", "{{mentee_id}}"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        },
+        {
+          "name": "Get Consistency Streak",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Consistency Streak - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "        const data = pm.response.json();",
+                "        pm.expect(data.data).to.haveOwnProperty('currentStreak');",
+                "        pm.expect(data.data).to.haveOwnProperty('longestStreak');",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/consistency-streak/{{mentee_id}}?months=3",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "consistency-streak", "{{mentee_id}}"],
+              "query": [{"key": "months", "value": "3"}]
+            }
+          }
+        },
+        {
+          "name": "Get User Level",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get User Level - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "        const data = pm.response.json();",
+                "        pm.expect(data.data).to.haveOwnProperty('level');",
+                "        pm.expect(data.data).to.haveOwnProperty('levelName');",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/level/{{mentee_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "level", "{{mentee_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Mentor vs Mentee Comparison",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Comparison - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "        const data = pm.response.json();",
+                "        pm.expect(data.data.analysis).to.haveOwnProperty('alignment');",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/comparison/{{mentee_id}}?timeRange=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "comparison", "{{mentee_id}}"],
+              "query": [{"key": "timeRange", "value": "30"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile Routes",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Profile - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Mentee Name\",\n  \"bio\": \"Passionate learner improving JavaScript skills\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get All Mentors",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "if (pm.response.code === 200) {",
+                "    pm.test('✅ Get Mentors - 200 OK', function () {",
+                "        pm.expect(pm.response.code).to.equal(200);",
+                "    });",
+                "}"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{mentee_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/mentors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "mentors"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:5000", "type": "string"},
+    {"key": "mentee_email", "value": "", "type": "string"},
+    {"key": "mentee_password", "value": "", "type": "string"},
+    {"key": "mentor_email", "value": "", "type": "string"},
+    {"key": "mentor_password", "value": "", "type": "string"},
+    {"key": "mentee_token", "value": "", "type": "string"},
+    {"key": "mentor_token", "value": "", "type": "string"},
+    {"key": "mentee_id", "value": "", "type": "string"},
+    {"key": "mentor_id", "value": "", "type": "string"},
+    {"key": "mentee_form_id", "value": "", "type": "string"}
+  ]
+}

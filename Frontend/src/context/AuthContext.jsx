@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { createContext } from "react";
-import axios from "axios";
+import API from "../api/axios"
 
 const authContext = createContext();
 
@@ -27,13 +27,12 @@ export const AuthProvider = ({ children }) => {
       if (menteeEmail) payload.menteeEmail = menteeEmail;
       if (expertise && Array.isArray(expertise)) payload.expertise = expertise;
 
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        payload
-      );
+      const res = await API.post("/auth/register", payload);
+      const { user, token } = res.data;
 
-      setUser(res.data.user);
-      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data.user));
+      setUser(user);
+      localStorage.setItem("mentee-mentor-user", JSON.stringify(user));
+      localStorage.setItem("token", token);
       return { success: true };
     } catch (err) {
       return {
@@ -45,13 +44,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await API.post("/auth/login", {
         email,
         password,
       });
 
-      setUser(res.data.user);
-      localStorage.setItem("mentee-mentor-user", JSON.stringify(res.data.user));
+      const { user, token } = res.data;
+
+      setUser(user);
+      localStorage.setItem("mentee-mentor-user", JSON.stringify(user));
+      localStorage.setItem("token", token);
       return { success: true };
     } catch (err) {
       return {
@@ -71,6 +73,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("mentee-mentor-user");
+    localStorage.removeItem("token");
   };
 
   return (
