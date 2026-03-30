@@ -4,6 +4,7 @@ import Register from "./auth/Register";
 import Dashboard from "./pages/Dashboard";
 import Navbar from "./components/Navbar";
 import { Routes, Route } from "react-router-dom";
+import ProgressDashboard from "./pages/ProgressDashboard";
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        {/* add other routes (addTask, progress, register) here when available */}
+        <Route path="/progress" element={<ProgressDashboard />} />
       </Routes>
     </>
   );
