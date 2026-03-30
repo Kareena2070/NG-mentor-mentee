@@ -6,7 +6,7 @@ function MenteeReflectionForm() {
     const { user } = useAuth();
     const [successMessage, setSuccessMessage] = useState("");
 
-    const [form, setForm] = useState({
+     const initialFormState = {
         topicCovered: "",
         learningsFromMentor: "",
         confidenceRating: 3,
@@ -15,7 +15,8 @@ function MenteeReflectionForm() {
         difficultiesEncountered: "",
         needsBetterExplanation: "",
         starsRating: 3
-    });
+    };
+    const [form, setForm] = useState(initialFormState);
     const [mentors, setMentors] = useState([]);
     const [mentorId, setMentorId] = useState("");
 
