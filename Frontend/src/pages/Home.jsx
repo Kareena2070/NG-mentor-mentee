@@ -1,6 +1,7 @@
 import reflectionImg from "../assets/reflection.png";
 import feedbackImg from "../assets/feedback.png";
 import growthImg from "../assets/growth.png";
+import { Link } from "react-router-dom";
 
 function Home() {
   const explinList = [
@@ -41,14 +42,14 @@ function Home() {
           together. Built for pair programming excellence at NavGurukul.
         </p>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button className="px-6 py-3 text-base sm:text-sm font-semibold rounded-lg bg-white text-[#9c69da] hover:-translate-y-1 transition">
+        <div className="mt-8 flex flex-wrap justify-center gap-4 items-center">
+          <Link to="/dashboard" className="px-6 py-3 text-base sm:text-sm font-semibold rounded-lg bg-white text-[#9c69da] hover:-translate-y-1 transition">
             Add Today's Learning
-          </button>
+          </Link>
 
-          <button className="px-6 py-3 text-base sm:text-sm font-semibold rounded-lg border-2 border-white bg-transparent text-white hover:-translate-y-1 transition">
+          <Link to="/progress" className="px-6 py-3 text-base sm:text-sm font-semibold rounded-lg border-2 border-white bg-transparent text-white hover:-translate-y-1 transition">
             View Progress
-          </button>
+          </Link>
         </div>
       </div>
 

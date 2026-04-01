@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ProgressChart from "../components/ProgressChart.jsx";
 import { useAuth } from "../context/AuthContext";
+import SessionImg from "../assets/session.png";
+import ConfidenceImg from "../assets/confidence.png";
+import UnderstandingImg from "../assets/understanding.png";
+import PracticeImg from "../assets/pratical.png";
 
 
 const ProgressDashboard = () => {
@@ -13,7 +17,7 @@ const ProgressDashboard = () => {
 
 
     useEffect(() => {
-        if (!user) return; // ✅ wait for auth
+        if (!user) return; // wait for auth
 
         const fetchDashboard = async () => {
             try {
@@ -35,10 +39,10 @@ const ProgressDashboard = () => {
         };
 
         fetchDashboard();
-    }, [user]); // ✅ add dependency
+    }, [user]); // add dependency
 
     useEffect(() => {
-        if (!user?._id) return; // ✅ important guard
+        if (!user?._id) return; //important guard
 
         const fetchGraph = async () => {
             try {
@@ -71,71 +75,109 @@ const ProgressDashboard = () => {
         };
 
         fetchGraph();
-    }, [user]); // ✅ dependency added
+    }, [user]); // dependency added
 
     if (loading) {
         return <div className="p-4">Loading...</div>;
     }
+
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="min-h-[90vh] bg-gray-50">
 
-                {/* Header */}
-                <div className="mb-4">
-                    <h1 className="text-xl md:text-2xl font-semibold">Progress Report</h1>
-                    <p className="text-sm text-gray-500">Track your learning journey</p>
+            {/* TOP GRADIENT SECTION */}
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-400 text-white py-10">
+
+                <div className="max-w-6xl mx-auto px-2 text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold">
+                        Progress Report
+                    </h1>
+                    <p className="text-indigo-100 mt-2 text-1xl md:text-2xl">
+                        Track your learning journey 
+                    </p>
+
+                    {/* Time Filter */}
+                    <div className="flex justify-center gap-3 mt-6 flex-wrap">
+                        {["7", "30", "90"].map((day) => (
+                            <button
+                                key={day}
+                                className="px-4 py-1.5 text-sm rounded-full bg-white text-indigo-600 font-medium shadow hover:bg-gray-100 transition"
+                            >
+                                {day} days
+                            </button>
+                        ))}
+                    </div>
                 </div>
+            </div>
 
-                {/* Time Filter */}
-                <div className="px-4 py-3 flex gap-2 overflow-x-auto">
-                    {["7", "30", "90"].map((day) => (
-                        <button
-                            key={day}
-                            className="px-3 py-1 text-sm bg-white border rounded-full shadow-sm"
-                        >
-                            {day} days
-                        </button>
-                    ))}
-                </div>
+            {/* MAIN CONTENT */}
+            <div className="max-w-6xl mx-auto px-4 -mt-6 pb-10">
 
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-4 space-y-4 pb-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-10">
 
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-3 rounded-xl shadow-sm">
-                            <p className="text-xs text-gray-500">Sessions</p>
-                            <p className="text-lg font-semibold">{data?.totalSessions}</p>
+                    {/* Sessions */}
+                    <div className="bg-white p-4 rounded-xl shadow-md flex items-center gap-3 hover:shadow-lg transition">
+                        <div className="bg-blue-100 p-2 rounded-lg text-xl">
+                            <img src={SessionImg} alt="Sessions" className="w-15 h-15 object-contain" />
                         </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Sessions</p>
+                            <p className="text-lg font-bold text-gray-800">
+                                {data?.totalSessions}
+                            </p>
+                        </div>
+                    </div>
 
-                        <div className="bg-white p-3 rounded-xl shadow-sm">
-                            <p className="text-xs text-gray-500">Confidence</p>
-                            <p className="text-lg font-semibold">
+                    {/* Confidence */}
+                    <div className="bg-white p-4 rounded-xl shadow-md flex items-center gap-3 hover:shadow-lg transition">
+                        <div className="bg-green-100 p-2 rounded-lg text-xl">
+                            <img src={ConfidenceImg} alt="Confidence" className="w-15 h-15 object-contain" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Confidence</p>
+                            <p className="text-lg font-bold text-gray-800">
                                 {data?.avgConfidence?.toFixed(1)}
                             </p>
                         </div>
+                    </div>
 
-                        <div className="bg-white p-3 rounded-xl shadow-sm">
-                            <p className="text-xs text-gray-500">Understanding</p>
-                            <p className="text-lg font-semibold">
+                    {/* Understanding */}
+                    <div className="bg-white p-4 rounded-xl shadow-md flex items-center gap-3 hover:shadow-lg transition">
+                        <div className="bg-purple-100 p-2 rounded-lg text-xl">
+                            <img src={UnderstandingImg} alt="Understanding" className="w-15 h-15 object-contain" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Understanding</p>
+                            <p className="text-lg font-bold text-gray-800">
                                 {data?.avgMenteeUnderstanding?.toFixed(1)}
                             </p>
                         </div>
+                    </div>
 
-                        <div className="bg-white p-3 rounded-xl shadow-sm">
-                            <p className="text-xs text-gray-500">Practice Rate</p>
-                            <p className="text-lg font-semibold">
+                    {/* Practice Rate */}
+                    <div className="bg-white p-4 rounded-xl shadow-md flex items-center gap-3 hover:shadow-lg transition">
+                        <div className="bg-orange-100 p-2 rounded-lg text-xl">
+                            <img src={PracticeImg} alt="Practice Rate" className="w-15 h-15 object-contain" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500">Practice Rate</p>
+                            <p className="text-lg font-bold text-gray-800">
                                 {data?.practiceRate}%
                             </p>
                         </div>
                     </div>
 
-                    {/* Placeholder Section */}
-                    <div className="bg-white p-4 rounded-xl shadow-sm">
-                        <ProgressChart data={graphData} />
-                    </div>
-
                 </div>
+
+                {/* Chart Section */}
+                <div className="bg-white mt-6 p-5 rounded-2xl shadow-md">
+                    <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-3">
+                        Progress Overview
+                    </h2>
+
+                    <ProgressChart data={graphData} />
+                </div>
+
             </div>
         </div>
     );
