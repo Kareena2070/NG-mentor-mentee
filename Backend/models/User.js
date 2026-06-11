@@ -22,11 +22,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters long'],
-    select: false // Don't include password in queries by default
+    select: false
   },
   role: {
     type: String,
-    enum: ['mentor', 'mentee'],
+    enum: ['mentor', 'mentee', 'admin'],
     required: [true, 'Role is required'],
     default: 'mentee'
   },
@@ -35,13 +35,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
-  menteeEmail: {
-    type: String,
-    lowercase: true,
-    match: [
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      'Please provide a valid mentee email address'
-    ]
+  // Mentor's list of mentees (ObjectId refs)
+  mentees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  // Mentee's linked mentor
+  mentor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   // Profile information
   profileImage: {
@@ -62,23 +65,15 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // Mentorship tracking
-  mentorshipPairs: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'active', 'completed', 'cancelled'],
-      default: 'pending'
-    },
-    startDate: {
-      type: Date,
-      default: Date.now
-    },
-    endDate: Date
-  }],
+  // Gamification
+  logCount: {
+    type: Number,
+    default: 0
+  },
+  totalStarsReceived: {
+    type: Number,
+    default: 0
+  },
   // Login tracking
   lastLogin: Date,
   loginCount: {
@@ -96,18 +91,24 @@ userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 
-// Virtual for full name display
-userSchema.virtual('displayName').get(function() {
-  return this.name;
+// Virtual for level based on log count
+userSchema.virtual('level').get(function () {
+  if (this.logCount >= 31) return 4;
+  if (this.logCount >= 16) return 3;
+  if (this.logCount >= 6) return 2;
+  return 1;
+});
+
+// Virtual for level label
+userSchema.virtual('levelLabel').get(function () {
+  const labels = { 1: 'Beginner', 2: 'Explorer', 3: 'Achiever', 4: 'Champion' };
+  return labels[this.level] || 'Beginner';
 });
 
 // Pre-save middleware to hash password
-userSchema.pre('save', async function(next) {
-  // Only hash the password if it has been modified (or is new)
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-
   try {
-    // Hash password with cost of 12
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
     next();
@@ -117,7 +118,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Instance method to check password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
@@ -126,34 +127,16 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 };
 
 // Instance method to update login info
-userSchema.methods.updateLoginInfo = function() {
+userSchema.methods.updateLoginInfo = function () {
   this.lastLogin = new Date();
   this.loginCount += 1;
   return this.save({ validateBeforeSave: false });
 };
 
 // Static method to find users by role
-userSchema.statics.findByRole = function(role) {
+userSchema.statics.findByRole = function (role) {
   return this.find({ role, isActive: true });
 };
-
-// Static method to find mentees for a mentor
-userSchema.statics.findMenteesForMentor = function(mentorId) {
-  return this.find({
-    'mentorshipPairs.user': mentorId,
-    'mentorshipPairs.status': 'active'
-  }).populate('mentorshipPairs.user', 'name email');
-};
-
-// Middleware to ensure mentor has required fields
-userSchema.pre('save', function(next) {
-  if (this.role === 'mentor') {
-    if (!this.expertise || this.expertise.length === 0) {
-      return next(new Error('Mentors must have at least one area of expertise'));
-    }
-  }
-  next();
-});
 
 const User = mongoose.model('User', userSchema);
 

@@ -2,11 +2,11 @@ import express from 'express';
 import User from '../models/User.js';
 import { createTokenResponse } from '../utils/jwt.js';
 import { authenticate } from '../middleware/auth.js';
-import { 
-  registerValidation, 
-  loginValidation, 
+import {
+  registerValidation,
+  loginValidation,
   handleValidation,
-  changePasswordValidation 
+  changePasswordValidation
 } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -16,18 +16,18 @@ const router = express.Router();
 // @access  Public
 router.post('/register', registerValidation, handleValidation, async (req, res) => {
   try {
-    const { name, email, password, role, menteeEmail, expertise } = req.body;
+    const { name, email, password, role, expertise } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User with this email already exists'
-      });
+    // Prevent admin creation via this route
+    if (role === 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin registration requires a special endpoint' });
     }
 
-    // Create user object
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User with this email already exists' });
+    }
+
     const userData = {
       name: name.trim(),
       email: email.toLowerCase(),
@@ -35,20 +35,14 @@ router.post('/register', registerValidation, handleValidation, async (req, res) 
       role
     };
 
-    // Add mentor-specific fields if role is mentor
-    if (role === 'mentor') {
-      userData.menteeEmail = menteeEmail?.toLowerCase();
+    if (role === 'mentor' && expertise && expertise.length > 0) {
       userData.expertise = expertise.map(exp => exp.trim()).filter(exp => exp !== '');
     }
 
-    // Create new user
     const user = new User(userData);
     await user.save();
-
-    // Update login info
     await user.updateLoginInfo();
 
-    // Generate token and send response
     const tokenResponse = createTokenResponse(user);
 
     res.status(201).json({
@@ -56,63 +50,74 @@ router.post('/register', registerValidation, handleValidation, async (req, res) 
       message: 'Registration successful',
       ...tokenResponse
     });
-
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Registration failed. Please try again.'
-    });
+    res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
   }
 });
 
-// @route   POST /api/auth/login  
+// @route   POST /api/auth/register-admin
+// @desc    Register a new admin (requires ADMIN_SECRET in header)
+// @access  Semi-private (requires ADMIN_SECRET)
+router.post('/register-admin', async (req, res) => {
+  try {
+    const adminSecret = req.headers['x-admin-secret'];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return res.status(403).json({ success: false, message: 'Invalid admin secret' });
+    }
+
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email and password are required' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User with this email already exists' });
+    }
+
+    const user = new User({ name, email, password, role: 'admin', expertise: [] });
+    await user.save();
+    await user.updateLoginInfo();
+
+    const tokenResponse = createTokenResponse(user);
+
+    res.status(201).json({ success: true, message: 'Admin registration successful', ...tokenResponse });
+  } catch (error) {
+    console.error('Admin registration error:', error);
+    res.status(500).json({ success: false, message: 'Admin registration failed' });
+  }
+});
+
+// @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
 router.post('/login', loginValidation, handleValidation, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user and include password for comparison
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       email: email.toLowerCase(),
-      isActive: true 
+      isActive: true
     }).select('+password');
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Check password
     const isPasswordMatch = await user.comparePassword(password);
     if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Update login info
     await user.updateLoginInfo();
-
-    // Generate token and send response
     const tokenResponse = createTokenResponse(user);
 
-    res.json({
-      success: true,
-      message: 'Login successful',
-      ...tokenResponse
-    });
-
+    res.json({ success: true, message: 'Login successful', ...tokenResponse });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Login failed. Please try again.'
-    });
+    res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
   }
 });
 
@@ -121,8 +126,10 @@ router.post('/login', loginValidation, handleValidation, async (req, res) => {
 // @access  Private
 router.get('/me', authenticate, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    
+    const user = await User.findById(req.user.id)
+      .populate('mentees', 'name email')
+      .populate('mentor', 'name email');
+
     res.json({
       success: true,
       user: {
@@ -131,20 +138,22 @@ router.get('/me', authenticate, async (req, res) => {
         email: user.email,
         role: user.role,
         expertise: user.expertise || [],
-        menteeEmail: user.menteeEmail || null,
+        mentees: user.mentees || [],
+        mentor: user.mentor || null,
         profileImage: user.profileImage || '',
         bio: user.bio || '',
         isEmailVerified: user.isEmailVerified,
         lastLogin: user.lastLogin,
+        logCount: user.logCount,
+        level: user.level,
+        levelLabel: user.levelLabel,
+        totalStarsReceived: user.totalStarsReceived,
         createdAt: user.createdAt
       }
     });
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch profile'
-    });
+    res.status(500).json({ success: false, message: 'Failed to fetch profile' });
   }
 });
 
@@ -154,62 +163,38 @@ router.get('/me', authenticate, async (req, res) => {
 router.put('/change-password', authenticate, changePasswordValidation, handleValidation, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-
-    // Get user with password
     const user = await User.findById(req.user.id).select('+password');
 
-    // Verify current password
     const isCurrentPasswordValid = await user.comparePassword(currentPassword);
     if (!isCurrentPasswordValid) {
-      return res.status(400).json({
-        success: false,
-        message: 'Current password is incorrect'
-      });
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
-    res.json({
-      success: true,
-      message: 'Password changed successfully'
-    });
-
+    res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to change password'
-    });
+    res.status(500).json({ success: false, message: 'Failed to change password' });
   }
 });
 
 // @route   POST /api/auth/logout
-// @desc    Logout user (client-side token removal)
+// @desc    Logout user
 // @access  Private
 router.post('/logout', authenticate, (req, res) => {
-  // In a JWT-based system, logout is typically handled client-side
-  // by removing the token from storage. However, we can log the logout event.
-  
-  res.json({
-    success: true,
-    message: 'Logged out successfully'
-  });
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 // @route   GET /api/auth/verify-token
 // @desc    Verify if token is valid
-// @access  Private  
+// @access  Private
 router.get('/verify-token', authenticate, (req, res) => {
   res.json({
     success: true,
     message: 'Token is valid',
-    user: {
-      id: req.user._id,
-      email: req.user.email,
-      role: req.user.role
-    }
+    user: { id: req.user._id, email: req.user.email, role: req.user.role }
   });
 });
 
